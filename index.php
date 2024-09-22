@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buchverwaltung</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" type="image/png" href="favicon_apple.png">
 </head>
 <body>
     <h1>Buchverwaltung</h1>
@@ -32,7 +34,96 @@
         <label for="ebook">eBook:</label>
         <input type="checkbox" id="ebook" name="ebook"><br>
 
+        <br>
         <button type="submit">Buch speichern</button>
+        <br><br>
+
+        <b><label for="savedBooks">zwischengespeicherte Bücher:</label></b>
+        <div id="savedBooks">Lade Bücher...</div><br>
+
+        <b><label for="syncedBooks">Bücherliste:</label></b>
+        <input type="text" id="search" name="search">
+        <div id="syncedBooks">Lade Bücher...</div>
+
+        <script>
+        // Funktion zum Laden der Bücher basierend auf dem Token im localStorage
+        async function loadBooks() {
+            // Token aus dem localStorage abrufen
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                document.getElementById('book-list').innerHTML = 'Kein Token im localStorage gefunden.';
+                return;
+            }
+
+            // Anfrage an den Server senden, um Bücher basierend auf dem Token zu erhalten
+            try {
+                const response = await fetch('./api/get.php?token=' + token, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const books = await response.json();
+
+                    if (books.length > 0) {
+                        // Bücher in einer Tabelle darstellen
+                        let tableHtml = '<table border="1" cellpadding="10"><tr><th>Autor</th><th>Titel</th></tr>';
+                        books.forEach(book => {
+                            tableHtml += `<tr><td>${book.author}</td><td>${book.title}</td></tr>`;
+                        });
+                        tableHtml += '</table>';
+
+                        document.getElementById('savedBooks').innerHTML = tableHtml;
+                    } else {
+                        document.getElementById('savedBooks').innerHTML = 'Keine Bücher für diesen Token gefunden.';
+                    }
+                } else {
+                    document.getElementById('savedBooks').innerHTML = 'Fehler beim Abrufen der Bücher.';
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Bücher:', error);
+                document.getElementById('savedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
+            }
+
+            try {
+                const response = await fetch('./api/getSynced.php?token=' + token, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const books = await response.json();
+
+                    if (books.length > 0) {
+                        // Bücher in einer Tabelle darstellen
+                        let tableHtml = '<table border="1" cellpadding="10"><tr><th>Autor</th><th>Titel</th></tr>';
+                        books.forEach(book => {
+                            tableHtml += `<tr><td>${book.author}</td><td>${book.title}</td></tr>`;
+                        });
+                        tableHtml += '</table>';
+
+                        document.getElementById('syncedBooks').innerHTML = tableHtml;
+                    } else {
+                        document.getElementById('syncedBooks').innerHTML = 'Keine Bücher für diesen Token gefunden.';
+                    }
+                } else {
+                    document.getElementById('syncedBooks').innerHTML = 'Fehler beim Abrufen der Bücher.';
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Bücher:', error);
+                document.getElementById('syncedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
+            }
+        }
+
+        // Die Funktion aufrufen, sobald die Seite geladen wurde
+        window.onload = loadBooks;
+    </script>
+
     </form>
 </body>
 </html>
