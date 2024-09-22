@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
 $dbname = 'bookApp';
-$username = '<yourUser>';
-$password = '<yourPassword>';
+$username = '<YourUser>';
+$password = '<YourPassword>';
 
 try {
 //    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
