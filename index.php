@@ -41,8 +41,8 @@
         <b><label for="savedBooks">zwischengespeicherte Bücher:</label></b>
         <div id="savedBooks">Lade Bücher...</div><br>
 
-        <b><label for="syncedBooks">Bücherliste:</label></b>
-        <input type="text" id="search" name="search">
+        <b><label for="syncedBooks">Bücherliste:</label></b><br>
+        <input type="text" id="search" name="search"></input>
         <div id="syncedBooks">Lade Bücher...</div>
 
         <script>
@@ -57,6 +57,7 @@
             }
 
             // Anfrage an den Server senden, um Bücher basierend auf dem Token zu erhalten
+            // Temporär gespeicherte Daten holen und in Tabelle darstellen
             try {
                 const response = await fetch('./api/get.php?token=' + token, {
                     method: 'GET',
@@ -88,6 +89,7 @@
                 document.getElementById('savedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
             }
 
+            // hochgeladene Bücher abrufen und in Tabelle darstellen
             try {
                 const response = await fetch('./api/getSynced.php?token=' + token, {
                     method: 'GET',
@@ -119,6 +121,27 @@
                 document.getElementById('syncedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
             }
         }
+
+        // Filterfunktion für die Tabelle
+        document.getElementById('search').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const table = document.getElementById('syncedBooks');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) { // Starten ab 1, um die Kopfzeile zu überspringen
+                const authorCell = rows[i].getElementsByTagName('td')[0];
+                const author = authorCell.textContent.toLowerCase();
+                const titleCell = rows[i].getElementsByTagName('td')[1];
+                const title = titleCell.textContent.toLowerCase();
+                if (author.includes(searchTerm)) {
+                    rows[i].style.display = '';
+                } else if (title.includes(searchTerm)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
 
         // Die Funktion aufrufen, sobald die Seite geladen wurde
         window.onload = loadBooks;
