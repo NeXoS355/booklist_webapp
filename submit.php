@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $author = $_POST['author'];
     $title = $_POST['title'];
     $series = isset($_POST['series']) ? $_POST['series'] : null;
-    $seriesPart = isset($_POST['seriesPart']) ? intval($_POST['seriesPart']) : null;
+    $seriesPart = isset($_POST['seriesPart']) ? $_POST['seriesPart'] : null;
     $note = isset($_POST['note']) ? $_POST['note'] : null;
     $ebook = isset($_POST['ebook']) ? 1 : 0;
     $token = $_POST['token'];

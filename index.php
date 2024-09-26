@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buchverwaltung</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" type="image/png" href="favicon_apple.png">
 </head>
@@ -73,7 +75,11 @@
                         // Bücher in einer Tabelle darstellen
                         let tableHtml = '<table border="1" cellpadding="10"><tr><th>Autor</th><th>Titel</th></tr>';
                         books.forEach(book => {
-                            tableHtml += `<tr><td>${book.author}</td><td>${book.title}</td></tr>`;
+                            tableHtml += `<tr>
+                                            <td>${book.author}</td>
+                                            <td>${book.title}</td>
+                                            <td><button onclick="deleteBook(${book.id})"><i class="fa fa-trash"></i></button></td>
+                                          </tr>`;
                         });
                         tableHtml += '</table>';
 
@@ -119,6 +125,42 @@
             } catch (error) {
                 console.error('Fehler beim Laden der Bücher:', error);
                 document.getElementById('syncedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
+            }
+        }
+
+        // Funktion zum Löschen eines spezifischen Buches
+        async function deleteBook(bookId) {
+            const confirmed = confirm('Möchten Sie dieses Buch wirklich löschen?');
+            if (!confirmed) return;
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Kein Token vorhanden. Bitte melden Sie sich erneut an.');
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'token': token,
+                        'bookId': bookId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.message) {
+                    alert(result.message);
+                    loadBooks(); // Tabelle aktualisieren
+                } else {
+                    alert('Fehler: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Fehler beim Löschen des Buches:', error);
+                alert('Ein Fehler ist aufgetreten.');
             }
         }
 
