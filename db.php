@@ -1,12 +1,15 @@
 <?php
-$host = 'localhost';
-$dbname = 'bookApp';
-$username = '<YourUser>';
-$password = '<YourPassword>';
+
+// Lade die Zugangsdaten
+require 'config.php';
+
+// Verbindungsvariablen
+$host = $dbCredentials['host'];
+$dbname = $dbCredentials['name'];
+$username = $dbCredentials['user'];
+$password = $dbCredentials['pass'];
 
 try {
-//    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-//    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn = new mysqli($host, $username, $password, $dbname);
     // Verbindung prüfen
     if ($conn->connect_error) {

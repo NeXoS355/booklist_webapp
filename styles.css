@@ -28,3 +28,14 @@ button:hover {
 #token {
     color: lightgrey;
 }
+
+.autocomplete-items {
+    position: absolute;
+    color: black;
+    background-color: white;
+    border: 2px solid #d4d4d4;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 99;
+}
+
