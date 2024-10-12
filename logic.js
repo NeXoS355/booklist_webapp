@@ -1,62 +1,3 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buchverwaltung</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" type="image/png" href="favicon_apple.png">
-</head>
-<body>
-    <h1>Buchverwaltung</h1>
-
-    <form action="submit.php" id="bookForm" method="POST">
-    <table>
-        <tr>
-            <td><label for="token">Token:</label></td>
-            <td><input type="text" id="token" name="token" required readonly><br></td>
-        </tr>
-        <tr>
-            <td><label for="author">Autor:</label></td>
-            <td><input type="text" id="author" name="author" required>
-            <div id="authorAutocomplete" class="autocomplete-items"></div></td>
-        </tr>
-        <tr>
-            <td><label for="title">Titel:</label></td>
-            <td><input type="text" id="title" name="title" required><br></td>
-        </tr>
-        <tr>        
-            <td><label for="series">Buchreihe:</label></td>
-            <td><input type="text" id="series" name="series"><br></td>
-        </tr>
-        <tr>
-            <td><label for="seriesPart">Teil der Buchreihe:</label></td>
-            <td><input type="number" pattern="[0-9]*" id="seriesPart" name="seriesPart"><br></td>
-        </tr>
-        <tr>
-            <td><label for="note">Bemerkung:</label></td>
-            <td><textarea id="note" name="note"></textarea><br></td>
-        </tr>
-        <tr>
-            <td><label for="ebook">eBook:</label></td>
-            <td><input type="checkbox" id="ebook" name="ebook"><br></td>
-        </tr>
-        </table>
-        <br>
-        <button type="submit">Buch speichern</button>
-        <br><br>
-
-        <b><label for="savedBooks">zwischengespeicherte Bücher:</label></b>
-        <div id="savedBooks">Lade Bücher...</div><br>
-
-        <b><label for="syncedBooks">Bücherliste:</label></b><br>
-        <input type="text" id="search" name="search"></input>
-        <div id="syncedBooks">Lade Bücher...</div>
-
-        <script>
         // Funktion zum Laden der Bücher basierend auf dem Token im localStorage
         async function loadBooks() {
             // Token aus dem localStorage abrufen
@@ -173,20 +114,6 @@
             }
         }
 
-        // Funktion zur API-Anfrage für die Autoren
-        async function fetchAuthors(query, token) {
-            try {
-                const response = await fetch('./api/author_search.php?author=' + query + '&token=' + token);
-                if (!response.ok) {
-                    throw new Error('Fehler bei der API-Anfrage');
-                }
-                return await response.json();
-            } catch (error) {
-                console.error('Fehler beim Abrufen der Autoren:', error);
-                return [];
-            }
-        }
-
         // Filterfunktion für die Tabelle
         document.getElementById('search').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -208,7 +135,6 @@
             }
         });
 
-        // EventListeners
         // Autovervollständigung für das Autor-Feld
         document.getElementById('author').addEventListener('input', async function () {
             const query = this.value;
@@ -231,43 +157,57 @@
             }
         });
 
-        // Funktion zum Auslesen der URL-Parameter
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
+        // Funktion zur API-Anfrage für die Autoren
+        async function fetchAuthors(query, token) {
+            try {
+                const response = await fetch('./api/author_search.php?author=' + query + '&token=' + token);
+                if (!response.ok) {
+                    throw new Error('Fehler bei der API-Anfrage');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Fehler beim Abrufen der Autoren:', error);
+                return [];
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Token aus URL-Parameter auslesen und ins Token-Feld eintragen
-            const token = getQueryParam('token');
-            if (token) {
-                document.getElementById('token').value = token;
-                // Speichern des Tokens im LocalStorage (falls benötigt)
-                localStorage.setItem('token', token);
-                window.location.href = './';
-            }
-        });
+    // Funktion zum Auslesen der URL-Parameter
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
 
-        // Beim Absenden des Formulars das Token im LocalStorage speichern
-        document.getElementById('bookForm').addEventListener('submit', function() {
-            const tokenField = document.getElementById('token');
-            if (!tokenField.value) {
-                // Token-Feld ist leer, Fehlermeldung anzeigen und Formular nicht absenden
-                tokenField.setCustomValidity('Token darf nicht leer sein.');
-                window.alert("Token darf nicht leer sein.");
-                event.preventDefault(); // Verhindert das Absenden des Formulars
-            } else {
-                tokenField.setCustomValidity(''); // Setzt die Validierung zurück, wenn alles in Ordnung ist
-                localStorage.setItem('token', document.getElementById('token').value);
-            }
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Token aus URL-Parameter auslesen und ins Token-Feld eintragen
+        const token = getQueryParam('token');
+        if (token) {
+            document.getElementById('token').value = token;
+            // Speichern des Tokens im LocalStorage (falls benötigt)
+            localStorage.setItem('token', token);
+            window.location.href = './';
+        }
+    });
 
-        // Beim Laden der Seite das Token aus dem LocalStorage in das Feld eintragen
-        document.getElementById('token').value = localStorage.getItem('token') || '';
+
+    // Beim Laden der Seite das Token aus dem LocalStorage in das Feld eintragen
+    document.getElementById('token').value = localStorage.getItem('token') || '';
+
+    // Beim Absenden des Formulars das Token im LocalStorage speichern
+    document.getElementById('bookForm').addEventListener('submit', function() {
+        const tokenField = document.getElementById('token');
+        if (!tokenField.value) {
+            // Token-Feld ist leer, Fehlermeldung anzeigen und Formular nicht absenden
+            tokenField.setCustomValidity('Token darf nicht leer sein.');
+            window.alert("Token darf nicht leer sein.");
+            event.preventDefault(); // Verhindert das Absenden des Formulars
+        } else {
+            tokenField.setCustomValidity(''); // Setzt die Validierung zurück, wenn alles in Ordnung ist
+            localStorage.setItem('token', document.getElementById('token').value);
+        }
+    });
+
+    document.getElementById('token').value = localStorage.getItem('token')
+
         // Die Funktion aufrufen, sobald die Seite geladen wurde
         window.onload = loadBooks;
-    </script>
 
-    </form>
-</body>
-</html>

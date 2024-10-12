@@ -1,6 +1,9 @@
-body {
+html,body {
     font-family: Arial, sans-serif;
+    background: #252525;
+    color: #ffffff;
 }
+
 
 form {
     margin: 20px;
@@ -30,12 +33,11 @@ button:hover {
 }
 
 .autocomplete-items {
-    position: absolute;
-    color: black;
-    background-color: white;
-    border: 2px solid #d4d4d4;
+    position: relative;
+    color: white;
+    background-color: #404040;
+    border: 0px solid #d4d4d4;
     max-height: 150px;
-    overflow-y: auto;
     z-index: 99;
 }
 
