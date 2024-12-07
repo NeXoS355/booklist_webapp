@@ -1,0 +1,8 @@
+# Dockerfile für MySQL-DB
+FROM mysql:8.0
+
+# Initialisierungsskript kopieren
+COPY init.sh /docker-entrypoint-initdb.d/init.sh
+
+# Ausführungsrechte setzen
+RUN chmod +x /docker-entrypoint-initdb.d/init.sh
