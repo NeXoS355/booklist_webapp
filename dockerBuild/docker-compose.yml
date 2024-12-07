@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile.web
+    ports:
+      - "4445:80"
+    volumes:
+      - /etc/letsencrypt/:/etc/letsencrypt/:ro
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=bookapp_user
+      - MYSQL_PASSWORD=My_Secure_Password
+      - MYSQL_DATABASE=bookapp_db
+      - LETSENCRYPT_PATH=/path/to/cert
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+  db:
+    build:
+      context: .
+      dockerfile: dockerfile.mysql
+    environment:
+      - MYSQL_USER=bookapp_user
+      - MYSQL_PASSWORD=My_Secure_Password
+      - MYSQL_DATABASE=bookapp_db
+      - MYSQL_ROOT_PASSWORD=Root_Secure_Password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+    ports: []
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
