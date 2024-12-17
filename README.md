@@ -1,5 +1,6 @@
 # booklist Webapp
-Booklist Web Interface with API for Java Booklist
+Booklist Web Interface with API for Java Booklist.<br>
+One Instance is running under https://nexos-srv.de:4444/
 
 ## Traditional Setup with apache
 
