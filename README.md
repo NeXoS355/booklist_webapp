@@ -2,7 +2,8 @@
 Booklist Web Interface with API for Java Booklist
 
 ## Traditional Setup with apache
-- clone the repo to your apache folder (e.g. <code>/var/www/bookApp</code> and edit the <code>apache.conf</code> files accordingly
+
+- clone the repo to your apache folder (e.g. <code>/var/www/bookApp</code> and add the <code>bookApp.conf</code> file under <code>sites-availabe</code><br>
 - change the owner to your apache user (e.g. <code>chown www-data:www-data /var/www/bookApp</code>
 - Create your own MySQL/MariadB Instance and edit the <code>/var/www/bookApp/config.php</code> file.
 - use the <code>/var/www/bookApp/dockerBuild/init.sh</code> script to create the neccessary Tables (change the DB Variables to your setup)
