@@ -1,6 +1,8 @@
 # booklist Webapp
-Booklist Web Interface with API for Java Booklist.<br>
-One Instance is running under https://nexos-srv.de:4444/
+Booklist Web Interface with API for Java Booklist.
+One Instance is running [here](https://nexos-srv.de:4444/?token=e0KXJgvMFDVmzi81iksKkvha7ezzgB).<br>
+You can use your own Token for some privacy with ```https://example.org:4444/?token=<yourRandomTokenHere>```<br>
+The Token is then saved locally in your BrowserStorage.
 
 ## Traditional Setup with apache
 
