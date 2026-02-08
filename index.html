@@ -63,17 +63,18 @@
             const token = localStorage.getItem('token');
 
             if (!token) {
-                document.getElementById('book-list').innerHTML = 'Kein Token im localStorage gefunden.';
+                document.getElementById('book-list').textContent = 'Kein Token im localStorage gefunden.';
                 return;
             }
 
             // Anfrage an den Server senden, um Bücher basierend auf dem Token zu erhalten
             // Temporär gespeicherte Daten holen und in Tabelle darstellen
             try {
-                const response = await fetch('./api/get.php?token=' + token, {
+                const response = await fetch('./api/get.php', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Auth-Token': token,
                     }
                 });
 
@@ -82,34 +83,48 @@
 
                     if (books.length > 0) {
                         // Bücher in einer Tabelle darstellen
-                        let tableHtml = '<table border="1" cellpadding="10"><tr><th>Autor</th><th>Titel</th></tr>';
+                        const table = document.createElement('table');
+                        table.setAttribute('border', '1');
+                        table.setAttribute('cellpadding', '10');
+                        const headerRow = table.insertRow();
+                        headerRow.insertCell().textContent = 'Autor';
+                        headerRow.insertCell().textContent = 'Titel';
+                        headerRow.cells[0].outerHTML = '<th>Autor</th>';
+                        headerRow.cells[0].outerHTML = '<th>Titel</th>';
                         books.forEach(book => {
-                            tableHtml += `<tr>
-                                            <td>${book.author}</td>
-                                            <td>${book.title}</td>
-                                            <td><button onclick="deleteBook(${book.id})"><i class="fa fa-trash"></i></button></td>
-                                          </tr>`;
+                            const row = table.insertRow();
+                            row.insertCell().textContent = book.author;
+                            row.insertCell().textContent = book.title;
+                            const btnCell = row.insertCell();
+                            const btn = document.createElement('button');
+                            btn.addEventListener('click', () => deleteBook(book.id));
+                            const icon = document.createElement('i');
+                            icon.className = 'fa fa-trash';
+                            btn.appendChild(icon);
+                            btnCell.appendChild(btn);
                         });
-                        tableHtml += '</table>';
 
-                        document.getElementById('savedBooks').innerHTML = tableHtml;
+                        const savedBooksDiv = document.getElementById('savedBooks');
+                        savedBooksDiv.textContent = '';
+                        savedBooksDiv.appendChild(table);
                     } else {
-                        document.getElementById('savedBooks').innerHTML = 'Keine Bücher für diesen Token gefunden.';
+                        document.getElementById('savedBooks').textContent = 'Keine Bücher für diesen Token gefunden.';
                     }
                 } else {
-                    document.getElementById('savedBooks').innerHTML = 'Fehler beim Abrufen der Bücher.';
+                    document.getElementById('savedBooks').textContent = 'Fehler beim Abrufen der Bücher.';
                 }
             } catch (error) {
                 console.error('Fehler beim Laden der Bücher:', error);
-                document.getElementById('savedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
+                document.getElementById('savedBooks').textContent = 'Ein Fehler ist aufgetreten.';
             }
 
             // hochgeladene Bücher abrufen und in Tabelle darstellen
             try {
-                const response = await fetch('./api/getSynced.php?token=' + token, {
+                const response = await fetch('./api/getSynced.php', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Auth-Token': token,
                     }
                 });
 
@@ -118,22 +133,32 @@
 
                     if (books.length > 0) {
                         // Bücher in einer Tabelle darstellen
-                        let tableHtml = '<table border="1" cellpadding="10"><tr><th>Autor</th><th>Titel</th></tr>';
+                        const table = document.createElement('table');
+                        table.setAttribute('border', '1');
+                        table.setAttribute('cellpadding', '10');
+                        const headerRow = table.insertRow();
+                        headerRow.insertCell().textContent = 'Autor';
+                        headerRow.insertCell().textContent = 'Titel';
+                        headerRow.cells[0].outerHTML = '<th>Autor</th>';
+                        headerRow.cells[0].outerHTML = '<th>Titel</th>';
                         books.forEach(book => {
-                            tableHtml += `<tr><td>${book.author}</td><td>${book.title}</td></tr>`;
+                            const row = table.insertRow();
+                            row.insertCell().textContent = book.author;
+                            row.insertCell().textContent = book.title;
                         });
-                        tableHtml += '</table>';
 
-                        document.getElementById('syncedBooks').innerHTML = tableHtml;
+                        const syncedBooksDiv = document.getElementById('syncedBooks');
+                        syncedBooksDiv.textContent = '';
+                        syncedBooksDiv.appendChild(table);
                     } else {
-                        document.getElementById('syncedBooks').innerHTML = 'Keine Bücher für diesen Token gefunden.';
+                        document.getElementById('syncedBooks').textContent = 'Keine Bücher für diesen Token gefunden.';
                     }
                 } else {
-                    document.getElementById('syncedBooks').innerHTML = 'Fehler beim Abrufen der Bücher.';
+                    document.getElementById('syncedBooks').textContent = 'Fehler beim Abrufen der Bücher.';
                 }
             } catch (error) {
                 console.error('Fehler beim Laden der Bücher:', error);
-                document.getElementById('syncedBooks').innerHTML = 'Ein Fehler ist aufgetreten.';
+                document.getElementById('syncedBooks').textContent = 'Ein Fehler ist aufgetreten.';
             }
         }
 
@@ -152,9 +177,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Auth-Token': token,
                     },
                     body: new URLSearchParams({
-                        'token': token,
                         'bookId': bookId
                     })
                 });
@@ -176,7 +201,9 @@
         // Funktion zur API-Anfrage für die Autoren
         async function fetchAuthors(query, token) {
             try {
-                const response = await fetch('./api/author_search.php?author=' + query + '&token=' + token);
+                const response = await fetch('./api/author_search.php?author=' + encodeURIComponent(query), {
+                    headers: { 'X-Auth-Token': token }
+                });
                 if (!response.ok) {
                     throw new Error('Fehler bei der API-Anfrage');
                 }
@@ -216,14 +243,14 @@
             if (query.length >= 4) {
                 const authors = await fetchAuthors(query, token);
                 const autocompleteDiv = document.getElementById('authorAutocomplete');
-                autocompleteDiv.innerHTML = ''; // Autovervollständigungs-Div leeren
+                autocompleteDiv.textContent = ''; // Autovervollständigungs-Div leeren
                 if (authors.length > 0) {
                     authors.forEach(author => {
                         const div = document.createElement('div');
                         div.textContent = author;
                         div.addEventListener('click', function() {
                             document.getElementById('author').value = author;
-                            autocompleteDiv.innerHTML = ''; // Autovervollständigungs-Div leeren nach Auswahl
+                            autocompleteDiv.textContent = ''; // Autovervollständigungs-Div leeren nach Auswahl
                         });
                         autocompleteDiv.appendChild(div);
                     });

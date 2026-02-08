@@ -13,9 +13,11 @@ try {
     $conn = new mysqli($host, $username, $password, $dbname);
     // Verbindung prüfen
     if ($conn->connect_error) {
-        die(json_encode(["error" => "Verbindung fehlgeschlagen: " . $conn->connect_error]));
+        error_log("DB-Verbindung fehlgeschlagen: " . $conn->connect_error);
+        die(json_encode(["error" => "Datenbankverbindung fehlgeschlagen."]));
     }
 } catch (PDOException $e) {
-    die('Fehler bei der Datenbankverbindung: ' . $e->getMessage());
+    error_log("DB-Verbindung fehlgeschlagen: " . $e->getMessage());
+    die(json_encode(["error" => "Datenbankverbindung fehlgeschlagen."]));
 }
 ?>

@@ -1,14 +1,16 @@
 <?php
 header('Content-Type: application/json');
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 require '../db.php';
+require '../auth.php';
 
 // Überprüfen, ob der Parameter 'author' in der URL vorhanden ist
-if (isset($_GET['author']) && !empty($_GET['author']) && isset($_GET['token']) && !empty($_GET['token'])) {
+if (isset($_GET['author']) && !empty($_GET['author'])) {
     $searchTerm = $_GET['author'];
-    $token = $_GET['token'];
+    $token = getToken();
 
     // SQL-Abfrage: Autoren suchen, die dem Suchbegriff ähneln (zum Beispiel mit LIKE)
     $stmt = $conn->prepare("SELECT DISTINCT author FROM syncedBooks WHERE token = ? AND author LIKE ? LIMIT 10");

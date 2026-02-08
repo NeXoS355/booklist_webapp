@@ -1,16 +1,18 @@
 <?php
 header('Content-Type: application/json');
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 require '../db.php';
+require '../auth.php';
 
 // Überprüfe die HTTP-Methode
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Bücher löschen nach Bestätigung
-if ($method == 'POST' && isset($_POST['token'])) {
-    $token = $_POST['token'];
+if ($method == 'POST') {
+    $token = getToken();
 
     // Beginne eine Transaktion
     $conn->begin_transaction();
@@ -34,7 +36,8 @@ if ($method == 'POST' && isset($_POST['token'])) {
     } catch (Exception $e) {
         // Bei einem Fehler: Transaktion zurückrollen
         $conn->rollback();
-        echo json_encode(["error" => "Fehler beim Löschen der Bücher: " . $e->getMessage()]);
+        error_log("Fehler beim Löschen der Bücher: " . $e->getMessage());
+        echo json_encode(["error" => "Fehler beim Löschen der Bücher."]);
     }
 } else {
     echo json_encode(["error" => "Ungültige Anfrage"]);

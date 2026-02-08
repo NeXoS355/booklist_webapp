@@ -1,16 +1,18 @@
 <?php
 header('Content-Type: application/json');
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 require '../db.php';
+require '../auth.php';
 
 // Überprüfe die HTTP-Methode
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Bücher nur abrufen
-if ($method == 'GET' && isset($_GET['token'])) {
-    $token = $_GET['token'];
+if ($method == 'GET') {
+    $token = getToken();
 
     // SQL-Abfrage vorbereiten
     $sql = "SELECT * FROM syncedBooks WHERE token = ?";

@@ -3,9 +3,9 @@
 
 // Datenbank-Zugangsdaten
 $dbHost = 'localhost'; // oder die IP-Adresse deines DB-Servers
-$dbUser = 'book_user'; // DB-Benutzername
-$dbPass = 'OwVeAg7pzfLzgq6V0Ja4'; // DB-Passwort
-$dbName = 'bookApp'; // DB-Name
+$dbUser = '<dbUser>'; // DB-Benutzername
+$dbPass = '<dbPassword>'; // DB-Passwort
+$dbName = '<dbName>'; // DB-Name
 
 // Datenbank-Verbindungsinformationen in einem Array
 $dbCredentials = [

@@ -1,14 +1,9 @@
 <?php
 header('Content-Type: application/json');
 require '../db.php';
+require '../auth.php';
 
-// POST-Daten empfangen
-$token = $_GET['token'] ?? '';
-
-if (!$token) {
-    echo json_encode(["message" => "Kein Token vorhanden"]);
-    exit;
-}
+$token = getToken();
 
 // POST-Daten empfangen (JSON-Daten von der Java-Anwendung)
 $data = json_decode(file_get_contents('php://input'), true);
