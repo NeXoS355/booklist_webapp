@@ -29,16 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("sssisis", $author, $title, $series, $seriesPart, $note, $ebook, $token);
 
     if ($stmt->execute()) {
-        // Erfolgreiche Speicherung
+        $stmt->close();
+        $conn->close();
+        header('Location: /');
+        exit;
     } else {
-        // Fehler bei der Ausführung
         error_log("Fehler beim Speichern der Daten: " . $stmt->error);
-        echo "Fehler beim Speichern der Daten.";
+        $stmt->close();
+        $conn->close();
+        die("Fehler beim Speichern der Daten.");
     }
-    // Verbindung schließen
-    $stmt->close();
-    $conn->close();
-    echo "<script type='text/javascript'>alert('Buch erfolgreich gespeichert!');window.location.replace('../');</script>";
 } else {
     echo 'Ungültige Anfrage.';
 }
