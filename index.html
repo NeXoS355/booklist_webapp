@@ -3,61 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1714">
     <title>Buchverwaltung</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" type="image/png" href="favicon_apple.png">
 </head>
 <body>
-    <h1>Buchverwaltung</h1>
+    <div class="page">
+        <header class="header">
+            <h1>Buchverwaltung</h1>
+            <div id="tokenIndicator" class="token-indicator"></div>
+        </header>
 
-    <form action="submit.php" id="bookForm" method="POST">
-    <table>
-        <tr>
-            <td><label for="token">Token:</label></td>
-            <td><input type="text" id="token" name="token" required readonly><br></td>
-        </tr>
-        <tr>
-            <td><label for="author">Autor:</label></td>
-            <td><input type="text" id="author" name="author" required>
-            <div id="authorAutocomplete" class="autocomplete-items"></div></td>
-        </tr>
-        <tr>
-            <td><label for="title">Titel:</label></td>
-            <td><input type="text" id="title" name="title" required><br></td>
-        </tr>
-        <tr>        
-            <td><label for="series">Buchreihe:</label></td>
-            <td><input type="text" id="series" name="series"><br></td>
-        </tr>
-        <tr>
-            <td><label for="seriesPart">Teil der Buchreihe:</label></td>
-            <td><input type="number" pattern="[0-9]*" id="seriesPart" name="seriesPart"><br></td>
-        </tr>
-        <tr>
-            <td><label for="note">Bemerkung:</label></td>
-            <td><textarea id="note" name="note"></textarea><br></td>
-        </tr>
-        <tr>
-            <td><label for="ebook">eBook:</label></td>
-            <td><input type="checkbox" id="ebook" name="ebook"><br></td>
-        </tr>
-        </table>
-        <br>
-        <button type="submit">Buch speichern</button>
-        <br><br>
+        <form action="submit.php" id="bookForm" method="POST" class="card">
+            <input type="hidden" id="token" name="token">
 
-        <b><label for="savedBooks">zwischengespeicherte Bücher:</label></b>
-        <div id="savedBooks">Lade Bücher...</div><br>
+            <div class="form-group">
+                <label for="author">Autor</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="author" name="author" required autocomplete="off" placeholder="z.B. Stephen King">
+                    <div id="authorAutocomplete" class="autocomplete-items"></div>
+                </div>
+            </div>
 
-        <b><label for="syncedBooks">Bücherliste:</label></b><br>
-        <input type="text" id="search" name="search"></input>
-        <div id="syncedBooks">Lade Bücher...</div>
+            <div class="form-group">
+                <label for="title">Titel</label>
+                <input type="text" id="title" name="title" required placeholder="z.B. Es">
+            </div>
 
-        <script src="app.js"></script>
+            <div class="form-row">
+                <div class="form-group form-group--flex">
+                    <label for="series">Buchreihe</label>
+                    <input type="text" id="series" name="series" placeholder="Optional">
+                </div>
+                <div class="form-group form-group--narrow">
+                    <label for="seriesPart">Teil</label>
+                    <input type="number" pattern="[0-9]*" id="seriesPart" name="seriesPart" placeholder="#">
+                </div>
+            </div>
 
-    </form>
+            <div class="form-group">
+                <label for="note">Bemerkung</label>
+                <textarea id="note" name="note" rows="3" placeholder="Optional"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="ebook" name="ebook">
+                    <span class="checkbox-box"></span>
+                    <span>eBook</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fa fa-book"></i>
+                Buch speichern
+            </button>
+        </form>
+
+        <section class="section">
+            <div class="section-header">
+                <h2>Zwischengespeichert</h2>
+                <span id="savedCount" class="badge"></span>
+            </div>
+            <div id="savedBooks" class="book-list">
+                <div class="loading-state">Lade Bücher…</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2>Bücherliste</h2>
+                <span id="syncedCount" class="badge"></span>
+            </div>
+            <div class="search-bar">
+                <i class="fa fa-search search-bar-icon"></i>
+                <input type="text" id="search" placeholder="Suche nach Autor oder Titel…">
+            </div>
+            <div id="syncedBooks" class="book-list">
+                <div class="loading-state">Lade Bücher…</div>
+            </div>
+        </section>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
 </body>
 </html>

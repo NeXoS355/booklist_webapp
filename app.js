@@ -1,15 +1,115 @@
-// Funktion zum Laden der Bücher basierend auf dem Token im localStorage
+// =============================================
+// BUCHVERWALTUNG — App Logic
+// =============================================
+
+// --- Toast Notifications ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast toast--' + type;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(function () {
+        toast.classList.add('toast--hiding');
+        toast.addEventListener('animationend', function () {
+            toast.remove();
+        });
+    }, 3000);
+}
+
+// --- Token Indicator ---
+function updateTokenIndicator() {
+    const token = localStorage.getItem('token');
+    const indicator = document.getElementById('tokenIndicator');
+    indicator.textContent = '';
+
+    const dot = document.createElement('span');
+    const text = document.createElement('span');
+
+    if (token && token.length >= 4) {
+        dot.className = 'token-dot token-dot--active';
+        text.textContent = 'Token: \u2731\u2731\u2731\u2731' + token.slice(-4);
+        indicator.appendChild(dot);
+        indicator.appendChild(text);
+
+        var copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'btn-token-copy';
+        copyBtn.title = 'Token kopieren';
+        var copyIcon = document.createElement('i');
+        copyIcon.className = 'fa fa-clipboard';
+        copyBtn.appendChild(copyIcon);
+        copyBtn.addEventListener('click', function () {
+            navigator.clipboard.writeText(token).then(function () {
+                showToast('Token kopiert!', 'success');
+            }).catch(function () {
+                showToast('Kopieren fehlgeschlagen.', 'error');
+            });
+        });
+        indicator.appendChild(copyBtn);
+    } else {
+        dot.className = 'token-dot';
+        text.textContent = 'Kein Token';
+        indicator.appendChild(dot);
+        indicator.appendChild(text);
+
+        var setup = document.createElement('div');
+        setup.className = 'token-setup';
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Token einfügen\u2026';
+        var saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'btn-token-save';
+        var saveIcon = document.createElement('i');
+        saveIcon.className = 'fa fa-check';
+        saveBtn.appendChild(saveIcon);
+        saveBtn.addEventListener('click', function () {
+            var val = input.value.trim();
+            if (val.length >= 32) {
+                localStorage.setItem('token', val);
+                document.getElementById('token').value = val;
+                updateTokenIndicator();
+                loadBooks();
+                showToast('Token gespeichert!', 'success');
+            } else {
+                showToast('Token muss mindestens 32 Zeichen lang sein.', 'error');
+            }
+        });
+        setup.appendChild(input);
+        setup.appendChild(saveBtn);
+        indicator.appendChild(setup);
+    }
+}
+
+// --- Helper: Tabelle mit Kopfzeile erstellen ---
+function createBookTable(columns) {
+    const table = document.createElement('table');
+    table.className = 'book-table';
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    columns.forEach(function (col) {
+        const th = document.createElement('th');
+        th.textContent = col.label || '';
+        if (col.className) th.className = col.className;
+        headerRow.appendChild(th);
+    });
+    table.createTBody();
+    return table;
+}
+
+// --- Buecher laden ---
 async function loadBooks() {
-    // Token aus dem localStorage abrufen
     const token = localStorage.getItem('token');
 
     if (!token) {
-        document.getElementById('book-list').textContent = 'Kein Token im localStorage gefunden.';
+        document.getElementById('savedBooks').textContent = '';
+        document.getElementById('syncedBooks').textContent = '';
         return;
     }
 
-    // Anfrage an den Server senden, um Bücher basierend auf dem Token zu erhalten
-    // Temporär gespeicherte Daten holen und in Tabelle darstellen
+    // Zwischengespeicherte Buecher
     try {
         const response = await fetch('./api/get.php', {
             method: 'GET',
@@ -21,45 +121,58 @@ async function loadBooks() {
 
         if (response.ok) {
             const books = await response.json();
+            const savedBooksDiv = document.getElementById('savedBooks');
+            const savedCount = document.getElementById('savedCount');
+            savedBooksDiv.textContent = '';
 
             if (books.length > 0) {
-                // Bücher in einer Tabelle darstellen
-                const table = document.createElement('table');
-                table.setAttribute('border', '1');
-                table.setAttribute('cellpadding', '10');
-                const headerRow = table.insertRow();
-                headerRow.insertCell().textContent = 'Autor';
-                headerRow.insertCell().textContent = 'Titel';
-                headerRow.cells[0].outerHTML = '<th>Autor</th>';
-                headerRow.cells[0].outerHTML = '<th>Titel</th>';
-                books.forEach(book => {
-                    const row = table.insertRow();
+                savedCount.textContent = books.length;
+
+                const table = createBookTable([
+                    { label: 'Autor' },
+                    { label: 'Titel' },
+                    { label: '', className: 'col-action' }
+                ]);
+                const tbody = table.tBodies[0];
+
+                books.forEach(function (book) {
+                    const row = tbody.insertRow();
                     row.insertCell().textContent = book.author;
                     row.insertCell().textContent = book.title;
+
                     const btnCell = row.insertCell();
+                    btnCell.className = 'col-action';
                     const btn = document.createElement('button');
-                    btn.addEventListener('click', () => deleteBook(book.id));
+                    btn.className = 'btn-delete';
+                    btn.type = 'button';
+                    btn.addEventListener('click', function () {
+                        deleteBook(book.id);
+                    });
                     const icon = document.createElement('i');
                     icon.className = 'fa fa-trash';
                     btn.appendChild(icon);
                     btnCell.appendChild(btn);
                 });
 
-                const savedBooksDiv = document.getElementById('savedBooks');
-                savedBooksDiv.textContent = '';
                 savedBooksDiv.appendChild(table);
             } else {
-                document.getElementById('savedBooks').textContent = 'Keine Bücher für diesen Token gefunden.';
+                savedCount.textContent = '';
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.textContent = 'Keine zwischengespeicherten Bücher.';
+                savedBooksDiv.appendChild(empty);
             }
         } else {
-            document.getElementById('savedBooks').textContent = 'Fehler beim Abrufen der Bücher.';
+            document.getElementById('savedBooks').textContent = '';
+            showToast('Fehler beim Abrufen der gespeicherten Bücher.', 'error');
         }
     } catch (error) {
         console.error('Fehler beim Laden der Bücher:', error);
-        document.getElementById('savedBooks').textContent = 'Ein Fehler ist aufgetreten.';
+        document.getElementById('savedBooks').textContent = '';
+        showToast('Verbindungsfehler beim Laden.', 'error');
     }
 
-    // hochgeladene Bücher abrufen und in Tabelle darstellen
+    // Synchronisierte Buecher
     try {
         const response = await fetch('./api/getSynced.php', {
             method: 'GET',
@@ -71,45 +184,52 @@ async function loadBooks() {
 
         if (response.ok) {
             const books = await response.json();
+            const syncedBooksDiv = document.getElementById('syncedBooks');
+            const syncedCount = document.getElementById('syncedCount');
+            syncedBooksDiv.textContent = '';
 
             if (books.length > 0) {
-                // Bücher in einer Tabelle darstellen
-                const table = document.createElement('table');
-                table.setAttribute('border', '1');
-                table.setAttribute('cellpadding', '10');
-                const headerRow = table.insertRow();
-                headerRow.insertCell().textContent = 'Autor';
-                headerRow.insertCell().textContent = 'Titel';
-                headerRow.cells[0].outerHTML = '<th>Autor</th>';
-                headerRow.cells[0].outerHTML = '<th>Titel</th>';
-                books.forEach(book => {
-                    const row = table.insertRow();
+                syncedCount.textContent = books.length;
+
+                const table = createBookTable([
+                    { label: 'Autor' },
+                    { label: 'Titel' }
+                ]);
+                const tbody = table.tBodies[0];
+
+                books.forEach(function (book) {
+                    const row = tbody.insertRow();
                     row.insertCell().textContent = book.author;
                     row.insertCell().textContent = book.title;
                 });
 
-                const syncedBooksDiv = document.getElementById('syncedBooks');
-                syncedBooksDiv.textContent = '';
                 syncedBooksDiv.appendChild(table);
             } else {
-                document.getElementById('syncedBooks').textContent = 'Keine Bücher für diesen Token gefunden.';
+                syncedCount.textContent = '';
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.textContent = 'Keine synchronisierten Bücher.';
+                syncedBooksDiv.appendChild(empty);
             }
         } else {
-            document.getElementById('syncedBooks').textContent = 'Fehler beim Abrufen der Bücher.';
+            document.getElementById('syncedBooks').textContent = '';
+            showToast('Fehler beim Abrufen der Bücherliste.', 'error');
         }
     } catch (error) {
         console.error('Fehler beim Laden der Bücher:', error);
-        document.getElementById('syncedBooks').textContent = 'Ein Fehler ist aufgetreten.';
+        document.getElementById('syncedBooks').textContent = '';
+        showToast('Verbindungsfehler beim Laden.', 'error');
     }
 }
 
-// Funktion zum Löschen eines spezifischen Buches
+// --- Buch loeschen ---
 async function deleteBook(bookId) {
     const confirmed = confirm('Möchten Sie dieses Buch wirklich löschen?');
     if (!confirmed) return;
+
     const token = localStorage.getItem('token');
     if (!token) {
-        alert('Kein Token vorhanden. Bitte melden Sie sich erneut an.');
+        showToast('Kein Token vorhanden.', 'error');
         return;
     }
 
@@ -120,26 +240,24 @@ async function deleteBook(bookId) {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Auth-Token': token,
             },
-            body: new URLSearchParams({
-                'bookId': bookId
-            })
+            body: new URLSearchParams({ 'bookId': bookId })
         });
 
         const result = await response.json();
 
         if (result.message) {
-            alert(result.message);
-            loadBooks(); // Tabelle aktualisieren
+            showToast(result.message, 'success');
+            loadBooks();
         } else {
-            alert('Fehler: ' + result.error);
+            showToast(result.error || 'Fehler beim Löschen.', 'error');
         }
     } catch (error) {
         console.error('Fehler beim Löschen des Buches:', error);
-        alert('Ein Fehler ist aufgetreten.');
+        showToast('Ein Fehler ist aufgetreten.', 'error');
     }
 }
 
-// Funktion zur API-Anfrage für die Autoren
+// --- Autoren-Autocomplete (API) ---
 async function fetchAuthors(query, token) {
     try {
         const response = await fetch('./api/author_search.php?author=' + encodeURIComponent(query), {
@@ -155,82 +273,83 @@ async function fetchAuthors(query, token) {
     }
 }
 
-// Filterfunktion für die Tabelle
-document.getElementById('search').addEventListener('input', function() {
+// --- Suchfilter fuer die Buecherliste ---
+document.getElementById('search').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
-    const table = document.getElementById('syncedBooks');
-    const rows = table.getElementsByTagName('tr');
+    const container = document.getElementById('syncedBooks');
+    const rows = container.getElementsByTagName('tr');
 
-    for (let i = 1; i < rows.length; i++) { // Starten ab 1, um die Kopfzeile zu überspringen
-        const authorCell = rows[i].getElementsByTagName('td')[0];
-        const author = authorCell.textContent.toLowerCase();
-        const titleCell = rows[i].getElementsByTagName('td')[1];
-        const title = titleCell.textContent.toLowerCase();
-        if (author.includes(searchTerm)) {
-            rows[i].style.display = '';
-        } else if (title.includes(searchTerm)) {
-            rows[i].style.display = '';
-        } else {
-            rows[i].style.display = 'none';
-        }
+    for (var i = 1; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName('td');
+        if (cells.length < 2) continue;
+        var author = cells[0].textContent.toLowerCase();
+        var title = cells[1].textContent.toLowerCase();
+        rows[i].style.display = (author.includes(searchTerm) || title.includes(searchTerm)) ? '' : 'none';
     }
 });
 
-// EventListeners
-// Autovervollständigung für das Autor-Feld
+// --- Autovervollstaendigung ---
 document.getElementById('author').addEventListener('input', async function () {
-    const query = this.value;
-    const token = document.getElementById('token').value;
+    var query = this.value;
+    var token = document.getElementById('token').value;
+    var autocompleteDiv = document.getElementById('authorAutocomplete');
+
     if (query.length >= 4) {
-        const authors = await fetchAuthors(query, token);
-        const autocompleteDiv = document.getElementById('authorAutocomplete');
-        autocompleteDiv.textContent = ''; // Autovervollständigungs-Div leeren
+        var authors = await fetchAuthors(query, token);
+        autocompleteDiv.textContent = '';
         if (authors.length > 0) {
-            authors.forEach(author => {
-                const div = document.createElement('div');
+            authors.forEach(function (author) {
+                var div = document.createElement('div');
                 div.textContent = author;
-                div.addEventListener('click', function() {
+                div.addEventListener('click', function () {
                     document.getElementById('author').value = author;
-                    autocompleteDiv.textContent = ''; // Autovervollständigungs-Div leeren nach Auswahl
+                    autocompleteDiv.textContent = '';
                 });
                 autocompleteDiv.appendChild(div);
             });
         }
+    } else {
+        autocompleteDiv.textContent = '';
     }
 });
 
-// Funktion zum Auslesen der URL-Parameter
+// --- URL-Parameter auslesen ---
 function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
+    var urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Token aus URL-Parameter auslesen und ins Token-Feld eintragen
-    const token = getQueryParam('token');
+// --- Token aus URL uebernehmen ---
+document.addEventListener('DOMContentLoaded', function () {
+    var token = getQueryParam('token');
     if (token) {
         document.getElementById('token').value = token;
-        // Speichern des Tokens im LocalStorage (falls benötigt)
         localStorage.setItem('token', token);
         window.location.href = './';
     }
+    updateTokenIndicator();
 });
 
-// Beim Absenden des Formulars das Token im LocalStorage speichern
-document.getElementById('bookForm').addEventListener('submit', function(event) {
-    const tokenField = document.getElementById('token');
+// --- Formular-Submit: Token validieren + Ladezustand ---
+document.getElementById('bookForm').addEventListener('submit', function (event) {
+    var tokenField = document.getElementById('token');
+    var submitBtn = document.getElementById('submitBtn');
+
     if (!tokenField.value) {
-        // Token-Feld ist leer, Fehlermeldung anzeigen und Formular nicht absenden
-        tokenField.setCustomValidity('Token darf nicht leer sein.');
-        window.alert("Token darf nicht leer sein.");
-        event.preventDefault(); // Verhindert das Absenden des Formulars
-    } else {
-        tokenField.setCustomValidity(''); // Setzt die Validierung zurück, wenn alles in Ordnung ist
-        localStorage.setItem('token', document.getElementById('token').value);
+        showToast('Token darf nicht leer sein.', 'error');
+        event.preventDefault();
+        return;
     }
+
+    tokenField.setCustomValidity('');
+    localStorage.setItem('token', tokenField.value);
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Wird gespeichert\u2026';
 });
 
-// Beim Laden der Seite das Token aus dem LocalStorage in das Feld eintragen
+// --- Token aus localStorage laden ---
 document.getElementById('token').value = localStorage.getItem('token') || '';
-// Die Funktion aufrufen, sobald die Seite geladen wurde
+
+// --- Seite initialisieren ---
 window.onload = loadBooks;
