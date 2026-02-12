@@ -352,4 +352,27 @@ document.getElementById('bookForm').addEventListener('submit', function (event) 
 document.getElementById('token').value = localStorage.getItem('token') || '';
 
 // --- Seite initialisieren ---
-window.onload = loadBooks;
+// pageshow fires both on initial load AND when restored from bfcache (Safari/iOS).
+// window.onload does NOT fire on bfcache restore, causing a blank page on iOS Safari.
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+        // Page was restored from bfcache — reset submit button state
+        var submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa fa-book"></i> Buch speichern';
+    }
+    loadBooks();
+});
+
+// --- iOS Safari tab restore: force visibility ---
+// When Safari freezes/unfreezes a tab, CSS animation state (opacity) can reset.
+// This forces all animated elements to be visible when the tab becomes active again.
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+        var animated = document.querySelectorAll('.header, .card, .section');
+        for (var i = 0; i < animated.length; i++) {
+            animated[i].style.opacity = '1';
+            animated[i].style.transform = 'none';
+        }
+    }
+});
