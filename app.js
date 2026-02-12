@@ -273,6 +273,22 @@ async function fetchAuthors(query, token) {
     }
 }
 
+// --- Buchreihen-Autocomplete (API) ---
+async function fetchSeries(query, token) {
+    try {
+        const response = await fetch('./api/series_search.php?series=' + encodeURIComponent(query), {
+            headers: { 'X-Auth-Token': token }
+        });
+        if (!response.ok) {
+            throw new Error('Fehler bei der API-Anfrage');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Buchreihen:', error);
+        return [];
+    }
+}
+
 // --- Suchfilter fuer die Buecherliste ---
 document.getElementById('search').addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
@@ -303,6 +319,31 @@ document.getElementById('author').addEventListener('input', async function () {
                 div.textContent = author;
                 div.addEventListener('click', function () {
                     document.getElementById('author').value = author;
+                    autocompleteDiv.textContent = '';
+                });
+                autocompleteDiv.appendChild(div);
+            });
+        }
+    } else {
+        autocompleteDiv.textContent = '';
+    }
+});
+
+// --- Buchreihen-Autovervollstaendigung ---
+document.getElementById('series').addEventListener('input', async function () {
+    var query = this.value;
+    var token = document.getElementById('token').value;
+    var autocompleteDiv = document.getElementById('seriesAutocomplete');
+
+    if (query.length >= 3) {
+        var seriesList = await fetchSeries(query, token);
+        autocompleteDiv.textContent = '';
+        if (seriesList.length > 0) {
+            seriesList.forEach(function (series) {
+                var div = document.createElement('div');
+                div.textContent = series;
+                div.addEventListener('click', function () {
+                    document.getElementById('series').value = series;
                     autocompleteDiv.textContent = '';
                 });
                 autocompleteDiv.appendChild(div);
