@@ -23,10 +23,12 @@ mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
   );
 
   CREATE TABLE IF NOT EXISTS syncedBooks (
-    token VARCHAR(255),
-    bid INT,
+    token VARCHAR(255) NOT NULL,
+    bid INT NOT NULL,
     author VARCHAR(255),
-    title VARCHAR(255)
+    title VARCHAR(255),
+    series VARCHAR(255),
+    PRIMARY KEY (token, bid)
   );
 
   CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';

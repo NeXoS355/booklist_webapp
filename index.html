@@ -93,6 +93,38 @@
 
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Buchdetail-Modal -->
+    <div class="detail-overlay" id="detailOverlay"
+         role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <div class="detail-drawer" id="detailDrawer">
+            <div class="detail-handle" aria-hidden="true"></div>
+            <button class="detail-close" id="detailClose" type="button" aria-label="Schließen">✕</button>
+
+            <div class="detail-scroll">
+                <div class="detail-header">
+                    <div class="detail-cover" id="detailCover">
+                        <div class="detail-cover-placeholder">
+                            <svg width="28" height="34" viewBox="0 0 28 34" fill="none">
+                                <rect x="1" y="1" width="26" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                                <line x1="5" y1="9"  x2="23" y2="9"  stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                                <line x1="5" y1="13" x2="23" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                                <line x1="5" y1="17" x2="18" y2="17" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="detail-hero">
+                        <h2 class="detail-title" id="detailTitle"></h2>
+                        <div class="detail-author" id="detailAuthor"></div>
+                        <div class="detail-stars-row" id="detailStars"></div>
+                        <div class="detail-chips" id="detailChips"></div>
+                    </div>
+                </div>
+
+                <div class="detail-body" id="detailBody"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

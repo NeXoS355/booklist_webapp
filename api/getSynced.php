@@ -25,6 +25,9 @@ if ($method == 'GET') {
 
     // Daten in ein Array speichern
     while ($row = $result->fetch_assoc()) {
+        // Typen für sauberes JSON normalisieren
+        $row['ebook']  = (bool) $row['ebook'];
+        $row['rating'] = $row['rating'] !== null ? (float) $row['rating'] : 0.0;
         $books[] = $row;
     }
 

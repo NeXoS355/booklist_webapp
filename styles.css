@@ -701,3 +701,412 @@ textarea:focus-visible {
     background: rgba(201, 168, 124, 0.3);
     color: var(--text);
 }
+
+/* ==========================================================
+   BUCHDETAIL — Modal / Drawer
+   ========================================================== */
+
+/* Tabelle: Ebook-Icon-Spalte */
+.book-table .col-ebook {
+    width: 36px;
+    text-align: center;
+    padding: 6px 4px;
+}
+
+.ebook-icon {
+    color: #7ab8d4;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Serien-Chip in der Tabellenzelle */
+.book-series-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+.book-series-chip span:first-child {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+}
+
+.book-series-vol {
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 8px;
+    border: 1px solid rgba(201, 168, 124, 0.2);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+    line-height: 1.5;
+}
+
+/* Tabellenzeilen klickbar */
+.book-table tbody tr.clickable {
+    cursor: pointer;
+}
+
+/* Sterne (Bewertung) */
+.detail-stars-inner {
+    display: inline-flex;
+    gap: 1px;
+    line-height: 1;
+}
+
+.star { color: rgba(201, 168, 124, 0.2); }
+.star.filled { color: var(--accent); }
+.star.half {
+    background: linear-gradient(90deg, var(--accent) 55%, rgba(201, 168, 124, 0.2) 55%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* --- Overlay-Hintergrund --- */
+@keyframes detailOverlayIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes detailOverlayOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes detailDrawerIn   { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes detailDrawerOut  { from { transform: translateY(0); opacity: 1; } to { transform: translateY(28px); opacity: 0; } }
+
+.detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 8, 7, 0.80);
+    z-index: 1000;
+    /* Standardmaessig versteckt — kein inline style="display:none" noetig */
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Sichtbar beim Oeffnen und Schliessen (Schliess-Animation laeuft noch) */
+.detail-overlay.showing,
+.detail-overlay.closing {
+    display: flex;
+}
+
+/* backdrop-filter + Animation nur beim tatsaechlichen Oeffnen */
+.detail-overlay.showing {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    animation: detailOverlayIn 0.22s ease both;
+}
+
+.detail-overlay.showing .detail-drawer {
+    animation: detailDrawerIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.detail-overlay.closing {
+    animation: detailOverlayOut 0.18s ease both;
+}
+
+.detail-overlay.closing .detail-drawer {
+    animation: detailDrawerOut 0.18s ease both;
+}
+
+/* Scroll-Lock wenn Modal offen */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Sternchen-Groesse und Meta-Abstand direkt in CSS */
+.detail-stars-inner {
+    font-size: 17px;
+}
+
+.detail-meta-grid {
+    margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+    .detail-overlay {
+        align-items: center;
+        padding: 32px 16px;
+    }
+}
+
+/* --- Drawer --- */
+.detail-drawer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    width: 100%;
+    max-width: 560px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+@media (min-width: 600px) {
+    .detail-drawer {
+        border-radius: var(--radius-lg);
+        max-height: 88vh;
+    }
+}
+
+/* Mobiler Drag-Handle */
+.detail-handle {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 4px;
+}
+
+.detail-handle::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-light);
+}
+
+@media (min-width: 600px) {
+    .detail-handle { display: none; }
+}
+
+/* Schließen-Button */
+.detail-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 15px;
+    z-index: 10;
+    line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.detail-close:hover {
+    background: var(--border);
+    color: var(--text);
+}
+
+@media (min-width: 600px) {
+    .detail-close { display: flex; }
+}
+
+/* Scrollbarer Inhaltsbereich */
+.detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+/* Header: Cover + Titelzeile */
+.detail-header {
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-raised);
+}
+
+/* Cover-Bild */
+.detail-cover {
+    flex-shrink: 0;
+    width: 88px;
+    height: 128px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.detail-cover-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--text-dim);
+    font-size: 28px;
+    opacity: 0.3;
+}
+
+/* Titelbereich neben dem Cover */
+.detail-hero {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 8px;
+}
+
+.detail-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+.detail-author {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+.detail-stars-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    min-height: 20px;
+}
+
+.detail-rating-val {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Chips (Serie, E-Book, Ausgeliehen) */
+.detail-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 11px;
+    font-size: 0.70rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.chip--series {
+    background: var(--accent-glow);
+    color: var(--accent);
+    border: 1px solid rgba(201, 168, 124, 0.22);
+}
+
+.chip--ebook {
+    background: rgba(122, 184, 212, 0.1);
+    color: #7ab8d4;
+    border: 1px solid rgba(122, 184, 212, 0.2);
+}
+
+.chip--borrowed {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(199, 92, 92, 0.2);
+}
+
+.chip--borrowed-from {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(125, 170, 148, 0.22);
+}
+
+/* --- Buchdetail-Body --- */
+.detail-body {
+    padding: 18px 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.detail-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.detail-description {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+.detail-description--clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 10;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.btn-expand {
+    background: none;
+    border: none;
+    padding: 4px 0 0;
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    display: block;
+}
+
+.btn-expand:hover {
+    color: var(--accent-hover);
+}
+
+.detail-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+
+.detail-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.detail-divider {
+    height: 1px;
+    background: var(--border);
+}

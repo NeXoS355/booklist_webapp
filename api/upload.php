@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $token = getToken();
 
-// Payload-Groesse begrenzen (5 MB)
-$maxSize = 5 * 1024 * 1024;
+// Payload-Groesse begrenzen (20 MB — Beschreibungen koennen groesser sein)
+$maxSize = 20 * 1024 * 1024;
 $rawInput = file_get_contents('php://input', false, null, 0, $maxSize + 1);
 if (strlen($rawInput) > $maxSize) {
     http_response_code(413);
-    echo json_encode(["message" => "Payload zu gross (max 5 MB)"]);
+    echo json_encode(["message" => "Payload zu gross (max 20 MB)"]);
     exit;
 }
 
@@ -33,18 +33,34 @@ if (!is_array($data)) {
     exit;
 }
 
-$sql = "INSERT INTO syncedBooks (bid, author, title, series, token) VALUES (?, ?, ?, ?, ?)";
+$sql = "INSERT INTO syncedBooks
+            (bid, author, title, series, series_part, ebook, rating,
+             note, isbn, description, date_added, ausgeliehen, borrow_name, token)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
 $inserted = 0;
 
 foreach ($data as $book) {
-    $bookId = $book['bid'] ?? null;
-    $author = $book['author'] ?? '';
-    $title = $book['title'] ?? '';
-    $series = $book['series'] ?? '';
+    $bookId      = $book['bid']         ?? null;
+    $author      = $book['author']      ?? '';
+    $title       = $book['title']       ?? '';
+    $series      = $book['series']      ?? '';
+    $seriesPart  = $book['series_part'] ?? '';
+    $ebook       = (int) ($book['ebook'] ?? 0);
+    $rating      = isset($book['rating']) && $book['rating'] > 0 ? (float) $book['rating'] : 0.0;
+    $note        = $book['note']        ?? '';
+    $isbn        = $book['isbn']        ?? '';
+    $description = $book['description'] ?? '';
+    $dateAdded   = !empty($book['date_added']) ? $book['date_added'] : null;
+    $ausgeliehen = $book['ausgeliehen'] ?? 'nein';
+    $borrowName  = $book['borrow_name'] ?? '';
 
     if ($bookId && $author && $title) {
-        $stmt->bind_param("issss", $bookId, $author, $title, $series, $token);
+        $stmt->bind_param("issssidsssssss",
+            $bookId, $author, $title, $series, $seriesPart,
+            $ebook, $rating, $note, $isbn, $description,
+            $dateAdded, $ausgeliehen, $borrowName, $token
+        );
         $stmt->execute();
         $inserted++;
     }
