@@ -1,0 +1,14 @@
+{
+  "name": "booklist-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "parcel index.html",
+    "build:frontend": "parcel build index.html --dist-dir dist --no-source-maps",
+    "build": "npm run build:frontend && cp -r api dist/ && cp submit.php auth.php db.php dist/"
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "devDependencies": {
+    "parcel": "^2.13.3"
+  }
+}
