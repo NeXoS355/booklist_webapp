@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "generate:version": "node -e \"const fs=require('fs'),v=require('./package.json').version;fs.writeFileSync('_version.js','export default \\\"'+v+'\\\"')\"",
+    "predev": "npm run generate:version",
     "dev": "parcel index.html",
+    "prebuild:frontend": "npm run generate:version",
     "build:frontend": "parcel build index.html --dist-dir dist --no-source-maps",
     "build": "npm run build:frontend && cp -r api dist/ && cp submit.php auth.php db.php dist/"
   },

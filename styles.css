@@ -131,14 +131,16 @@ body::before {
     line-height: 1.2;
 }
 
-.header h1::after {
-    content: '';
+.app-version {
     display: block;
-    width: 40px;
-    height: 2.5px;
-    background: var(--accent);
-    border-radius: 2px;
-    margin-top: 10px;
+    width: fit-content;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    letter-spacing: 0.03em;
 }
 
 /* --- Token Indicator --- */
@@ -288,6 +290,7 @@ body::before {
 
 /* --- Inputs & Textarea --- */
 input[type="text"],
+input:not([type]),
 input[type="number"],
 textarea {
     display: block;
@@ -308,6 +311,7 @@ textarea {
 }
 
 input[type="text"]:focus,
+input:not([type]):focus,
 input[type="number"]:focus,
 textarea:focus {
     border-color: var(--accent);
@@ -767,14 +771,77 @@ textarea:focus-visible {
 }
 
 /* Interaktive Sterne (syncedBooks) */
-.interactive-stars { cursor: pointer; }
+.interactive-stars {
+    cursor: pointer;
+    touch-action: none;
+    font-size: 24px;
+    gap: 2px;
+}
+
+/* Bleistift-Icon — signalisiert Bearbeitbarkeit */
+.detail-rating-edit-hint {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 5px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    pointer-events: none;
+}
+
+.detail-stars-row:hover .detail-rating-edit-hint,
+.detail-stars-row:focus-within .detail-rating-edit-hint {
+    opacity: 1;
+    color: var(--accent);
+}
+
+/* Touch-Hinweis nur auf Touch-Geräten */
+.detail-rating-touch-hint {
+    display: none;
+}
+
+@media (hover: none) {
+    .detail-rating-touch-hint {
+        display: block;
+        font-size: 0.62rem;
+        color: var(--text-dim);
+        letter-spacing: 0.04em;
+        margin-top: 3px;
+        opacity: 0.7;
+    }
+}
+
 .interactive-stars .interactive-star {
     cursor: pointer;
-    transition: color 0.1s, filter 0.1s;
+    padding: 4px 3px;
+    transition: color 0.1s ease, transform 0.12s ease, filter 0.1s ease;
     user-select: none;
     -webkit-user-select: none;
 }
-.interactive-stars:hover .interactive-star { filter: brightness(1.15); }
+
+.interactive-stars .interactive-star.filled {
+    transform: scale(1.1);
+}
+
+.interactive-stars:hover .interactive-star {
+    filter: brightness(1.15);
+}
+
+@media (max-width: 520px) {
+    .interactive-stars {
+        font-size: 30px;
+        gap: 0;
+    }
+
+    .interactive-stars .interactive-star {
+        padding: 6px 4px;
+    }
+
+    .detail-stars-row {
+        min-height: 52px;
+    }
+}
 
 /* --- Overlay-Hintergrund --- */
 @keyframes detailOverlayIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -989,10 +1056,15 @@ body.modal-open {
 
 .detail-stars-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 5px;
     margin-top: 6px;
     min-height: 20px;
+}
+
+.detail-rating-touch-hint {
+    flex-basis: 100%;
 }
 
 .detail-rating-val {

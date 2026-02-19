@@ -2,6 +2,8 @@
 // BUCHVERWALTUNG — App Logic
 // =============================================
 
+import APP_VERSION from './_version.js';
+
 // --- Toast Notifications ---
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
@@ -128,16 +130,6 @@ function renderInteractiveStars(initialRating, onChange) {
     var container = document.createElement('span');
     container.className = 'detail-stars-inner interactive-stars';
 
-    function updateDisplay(rating) {
-        var stars = container.querySelectorAll('.interactive-star');
-        stars.forEach(function(s, idx) {
-            var val = idx + 1;
-            s.classList.remove('filled', 'half');
-            if (rating >= val)       s.classList.add('filled');
-            else if (rating >= val - 0.4) s.classList.add('half');
-        });
-    }
-
     for (var i = 1; i <= 5; i++) {
         var star = document.createElement('span');
         star.className = 'star interactive-star';
@@ -146,30 +138,56 @@ function renderInteractiveStars(initialRating, onChange) {
         container.appendChild(star);
     }
 
+    function getRatingFromX(clientX) {
+        var rect = container.getBoundingClientRect();
+        var x = Math.max(0, Math.min(clientX - rect.left, rect.width - 1));
+        var raw = (x / rect.width) * 5;
+        return Math.max(0.5, Math.min(5, Math.round(raw * 2) / 2));
+    }
+
+    function updateDisplay(rating) {
+        container.querySelectorAll('.interactive-star').forEach(function(s, idx) {
+            s.classList.remove('filled', 'half');
+            if (rating >= idx + 1)  s.classList.add('filled');
+            else if (rating > idx)  s.classList.add('half');
+        });
+    }
+
     updateDisplay(current);
 
-    container.addEventListener('mousemove', function(e) {
-        var star = e.target.closest('.interactive-star');
-        if (!star) return;
-        var val = parseInt(star.dataset.value);
-        var rect = star.getBoundingClientRect();
-        updateDisplay(e.clientX < rect.left + rect.width / 2 ? val - 0.5 : val);
+    var active = false;
+
+    container.addEventListener('pointerdown', function(e) {
+        active = true;
+        container.setPointerCapture(e.pointerId);
+        updateDisplay(getRatingFromX(e.clientX));
+        e.preventDefault();
     });
 
-    container.addEventListener('mouseleave', function() {
+    container.addEventListener('pointermove', function(e) {
+        if (active || e.pointerType === 'mouse') {
+            updateDisplay(getRatingFromX(e.clientX));
+        }
+    });
+
+    container.addEventListener('pointerup', function(e) {
+        if (active) {
+            active = false;
+            current = getRatingFromX(e.clientX);
+            updateDisplay(current);
+            onChange(current);
+        }
+    });
+
+    container.addEventListener('pointercancel', function() {
+        active = false;
         updateDisplay(current);
     });
 
-    container.addEventListener('click', function(e) {
-        var star = e.target.closest('.interactive-star');
-        if (!star) return;
-        var val = parseInt(star.dataset.value);
-        var rect = star.getBoundingClientRect();
-        var newRating = e.clientX < rect.left + rect.width / 2 ? val - 0.5 : val;
-        if (newRating < 0.5) newRating = 0.5;
-        current = newRating;
-        updateDisplay(current);
-        onChange(current);
+    container.addEventListener('pointerleave', function(e) {
+        if (!active && e.pointerType === 'mouse') {
+            updateDisplay(current);
+        }
     });
 
     return container;
@@ -544,6 +562,10 @@ window.addEventListener('pageshow', function (event) {
     var overlay = document.getElementById('detailOverlay');
     overlay.classList.remove('showing', 'closing');
     document.body.classList.remove('modal-open');
+    if (APP_VERSION) {
+        var versionEl = document.getElementById('appVersion');
+        if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
+    }
     loadBooks();
 });
 
@@ -564,8 +586,17 @@ function openBookDetail(book) {
             ratingVal.textContent = newRating.toFixed(1);
             updateBookRating(book.bid, newRating);
         });
+        var editHint = document.createElement('span');
+        editHint.className = 'detail-rating-edit-hint';
+        editHint.setAttribute('aria-hidden', 'true');
+        editHint.innerHTML = '<i class="fa fa-pencil"></i>';
+        var touchHint = document.createElement('div');
+        touchHint.className = 'detail-rating-touch-hint';
+        touchHint.textContent = 'Wischen zum Bewerten';
         starsEl.appendChild(stars);
         starsEl.appendChild(ratingVal);
+        starsEl.appendChild(editHint);
+        starsEl.appendChild(touchHint);
     } else if (book.rating && book.rating > 0) {
         // manuell hinzugefuegtes Buch: statische Sterne
         starsEl.innerHTML = renderStarsHtml(book.rating, 17);
