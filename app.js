@@ -123,6 +123,79 @@ function renderStarsHtml(rating, size) {
     return s + '</span>';
 }
 
+function renderInteractiveStars(initialRating, onChange) {
+    var current = initialRating || 0;
+    var container = document.createElement('span');
+    container.className = 'detail-stars-inner interactive-stars';
+
+    function updateDisplay(rating) {
+        var stars = container.querySelectorAll('.interactive-star');
+        stars.forEach(function(s, idx) {
+            var val = idx + 1;
+            s.classList.remove('filled', 'half');
+            if (rating >= val)       s.classList.add('filled');
+            else if (rating >= val - 0.4) s.classList.add('half');
+        });
+    }
+
+    for (var i = 1; i <= 5; i++) {
+        var star = document.createElement('span');
+        star.className = 'star interactive-star';
+        star.dataset.value = i;
+        star.textContent = '★';
+        container.appendChild(star);
+    }
+
+    updateDisplay(current);
+
+    container.addEventListener('mousemove', function(e) {
+        var star = e.target.closest('.interactive-star');
+        if (!star) return;
+        var val = parseInt(star.dataset.value);
+        var rect = star.getBoundingClientRect();
+        updateDisplay(e.clientX < rect.left + rect.width / 2 ? val - 0.5 : val);
+    });
+
+    container.addEventListener('mouseleave', function() {
+        updateDisplay(current);
+    });
+
+    container.addEventListener('click', function(e) {
+        var star = e.target.closest('.interactive-star');
+        if (!star) return;
+        var val = parseInt(star.dataset.value);
+        var rect = star.getBoundingClientRect();
+        var newRating = e.clientX < rect.left + rect.width / 2 ? val - 0.5 : val;
+        if (newRating < 0.5) newRating = 0.5;
+        current = newRating;
+        updateDisplay(current);
+        onChange(current);
+    });
+
+    return container;
+}
+
+async function updateBookRating(bid, rating) {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('bid', bid);
+    formData.append('rating', rating);
+    try {
+        const response = await fetch('./api/updateRating.php', {
+            method: 'POST',
+            headers: { 'X-Auth-Token': token },
+            body: formData
+        });
+        if (response.ok) {
+            showToast('Bewertung gespeichert', 'success');
+        } else {
+            showToast('Fehler beim Speichern der Bewertung', 'error');
+        }
+    } catch (e) {
+        showToast('Verbindungsfehler', 'error');
+    }
+}
+
 function formatDateDetail(str) {
     if (!str) return '—';
     try {
@@ -482,12 +555,24 @@ function openBookDetail(book) {
     // Sterne + Bewertungszahl
     var starsEl = document.getElementById('detailStars');
     starsEl.innerHTML = '';
-    if (book.rating && book.rating > 0) {
-        starsEl.innerHTML = renderStarsHtml(book.rating, 17);
+    if (book.bid) {
+        // syncedBook: interaktive Sterne
         var ratingVal = document.createElement('span');
         ratingVal.className = 'detail-rating-val';
-        ratingVal.textContent = parseFloat(book.rating).toFixed(1);
+        ratingVal.textContent = book.rating > 0 ? parseFloat(book.rating).toFixed(1) : '';
+        var stars = renderInteractiveStars(book.rating || 0, function(newRating) {
+            ratingVal.textContent = newRating.toFixed(1);
+            updateBookRating(book.bid, newRating);
+        });
+        starsEl.appendChild(stars);
         starsEl.appendChild(ratingVal);
+    } else if (book.rating && book.rating > 0) {
+        // manuell hinzugefuegtes Buch: statische Sterne
+        starsEl.innerHTML = renderStarsHtml(book.rating, 17);
+        var ratingValStatic = document.createElement('span');
+        ratingValStatic.className = 'detail-rating-val';
+        ratingValStatic.textContent = parseFloat(book.rating).toFixed(1);
+        starsEl.appendChild(ratingValStatic);
     }
 
     // Chips (Serie, E-Book, Ausleihstatus)
