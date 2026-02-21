@@ -557,6 +557,12 @@ window.addEventListener('pageshow', function (event) {
         var submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa fa-book"></i> Buch speichern';
+        // bfcache-Restore verliert animation forwards-fill → Elemente erzwingen sichtbar
+        var animated = document.querySelectorAll('.header, .card, .section');
+        for (var i = 0; i < animated.length; i++) {
+            animated[i].style.opacity = '1';
+            animated[i].style.transform = 'none';
+        }
     }
     // Immer: Detail-Modal zuruecksetzen (bfcache kann offenen Modal-Zustand einfrieren)
     var overlay = document.getElementById('detailOverlay');

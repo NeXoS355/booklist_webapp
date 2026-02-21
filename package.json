@@ -7,7 +7,7 @@
     "predev": "npm run generate:version",
     "dev": "parcel index.html",
     "prebuild:frontend": "npm run generate:version",
-    "build:frontend": "parcel build index.html --dist-dir dist --no-source-maps",
+    "build:frontend": "rm -rf dist && parcel build index.html --dist-dir dist --no-source-maps",
     "build": "npm run build:frontend && cp -r api dist/ && cp submit.php auth.php db.php dist/"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
